@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { CarScene } from "@/components/car/CarScene";
+import { CarViewerLoader } from "@/components/car/CarViewerLoader";
 import type { ZoneWithBid } from "@/lib/types";
 
 type CarViewerProps = {
@@ -29,8 +30,8 @@ function SceneContent({
       />
       <OrbitControls
         enablePan={false}
-        minDistance={2.8}
-        maxDistance={7}
+        minDistance={2.0}
+        maxDistance={5}
         maxPolarAngle={Math.PI / 2.1}
         target={[0, 0, 0]}
       />
@@ -44,9 +45,9 @@ export function CarViewer({
   onSelectZone,
 }: CarViewerProps) {
   return (
-    <div className="viewer-gradient h-full w-full touch-none overflow-hidden rounded-2xl">
+    <div className="viewer-gradient relative h-full w-full touch-none overflow-hidden rounded-2xl">
       <Canvas
-        camera={{ position: [3.5, 2.2, 4.5], fov: 42, near: 0.1, far: 100 }}
+        camera={{ position: [2.1, 1.3, 2.7], fov: 42, near: 0.1, far: 100 }}
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true }}
       >
@@ -58,6 +59,7 @@ export function CarViewer({
           />
         </Suspense>
       </Canvas>
+      <CarViewerLoader />
     </div>
   );
 }
