@@ -232,6 +232,10 @@ export function BidSheet({
             className="font-medium text-foreground"
           />
         </p>
+        <p className="mt-2 border-t border-border pt-2 text-xs leading-6 text-muted">
+          تبلیغ شما تا زمانی که کسی پیشنهاد بالاتری ندهد و تأیید شود، روی خودرو
+          می‌ماند.
+        </p>
       </div>
 
       <label className="block space-y-1.5">
