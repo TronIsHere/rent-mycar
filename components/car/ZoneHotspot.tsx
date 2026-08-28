@@ -3,10 +3,10 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { Mesh } from "three";
-import type { AdZoneConfig } from "@/lib/zones";
+import type { AdZoneWithTransform } from "@/lib/types";
 
 type ZoneHotspotProps = {
-  zone: AdZoneConfig;
+  zone: AdZoneWithTransform;
   active: boolean;
 };
 

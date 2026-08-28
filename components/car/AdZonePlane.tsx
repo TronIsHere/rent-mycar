@@ -1,29 +1,31 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTexture } from "@react-three/drei";
-import { CanvasTexture, SRGBColorSpace } from "three";
+import { Edges, useTexture } from "@react-three/drei";
+import { CanvasTexture, SRGBColorSpace, type Texture } from "three";
 import type { ThreeEvent } from "@react-three/fiber";
-import type { AdZoneConfig } from "@/lib/zones";
+import type { AdZoneWithTransform } from "@/lib/types";
 import { useIsDark } from "@/components/ThemeToggle";
 
 type AdZonePlaneProps = {
-  zone: AdZoneConfig;
+  zone: AdZoneWithTransform;
   adImageUrl?: string | null;
   selected: boolean;
+  editMode?: boolean;
   onSelect: (slug: string) => void;
 };
 
-function createPlaceholderTexture(label: string, isDark: boolean) {
+function createPlaceholderTexture(label: string, isDark: boolean, width: number, height: number) {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
+  const aspect = width / height;
   canvas.height = 256;
+  canvas.width = Math.round(canvas.height * aspect);
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
   ctx.fillStyle = isDark ? "#1e1e1e" : "#e8e8e8";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = isDark ? "#444444" : "#888888";
+  ctx.strokeStyle = isDark ? "#666666" : "#999999";
   ctx.lineWidth = 4;
   ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
   ctx.fillStyle = isDark ? "#e0e0e0" : "#121212";
@@ -40,23 +42,25 @@ function createPlaceholderTexture(label: string, isDark: boolean) {
   return texture;
 }
 
-function PlaceholderPlane({
+function ZonePlaneMesh({
   zone,
+  map,
   selected,
+  editMode,
   onSelect,
-}: Omit<AdZonePlaneProps, "adImageUrl">) {
-  const isDark = useIsDark();
-  const texture = useMemo(
-    () => createPlaceholderTexture(zone.label, isDark),
-    [zone.label, isDark],
-  );
-
+}: {
+  zone: AdZoneWithTransform;
+  map: Texture;
+  selected: boolean;
+  editMode: boolean;
+  onSelect: (slug: string) => void;
+}) {
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
     onSelect(zone.slug);
   };
 
-  if (!texture) return null;
+  const opacity = editMode ? (selected ? 0.92 : 0.72) : selected ? 1 : 0.88;
 
   return (
     <mesh
@@ -71,13 +75,39 @@ function PlaceholderPlane({
       }}
     >
       <planeGeometry args={zone.size} />
-      <meshBasicMaterial
-        map={texture}
-        transparent
-        opacity={selected ? 1 : 0.88}
-        toneMapped={false}
-      />
+      <meshBasicMaterial map={map} transparent opacity={opacity} toneMapped={false} />
+      {editMode && (
+        <Edges
+          color={selected ? "#ffffff" : "#888888"}
+          linewidth={selected ? 2 : 1}
+        />
+      )}
     </mesh>
+  );
+}
+
+function PlaceholderPlane({
+  zone,
+  selected,
+  editMode = false,
+  onSelect,
+}: Omit<AdZonePlaneProps, "adImageUrl"> & { editMode?: boolean }) {
+  const isDark = useIsDark();
+  const texture = useMemo(
+    () => createPlaceholderTexture(zone.label, isDark, zone.size[0], zone.size[1]),
+    [zone.label, zone.size, isDark],
+  );
+
+  if (!texture) return null;
+
+  return (
+    <ZonePlaneMesh
+      zone={zone}
+      map={texture}
+      selected={selected}
+      editMode={editMode}
+      onSelect={onSelect}
+    />
   );
 }
 
@@ -85,35 +115,19 @@ function AdImagePlane({
   zone,
   adImageUrl,
   selected,
+  editMode = false,
   onSelect,
 }: AdZonePlaneProps & { adImageUrl: string }) {
   const texture = useTexture(adImageUrl);
 
-  const handleClick = (event: ThreeEvent<MouseEvent>) => {
-    event.stopPropagation();
-    onSelect(zone.slug);
-  };
-
   return (
-    <mesh
-      position={zone.position}
-      rotation={zone.rotation}
-      onClick={handleClick}
-      onPointerOver={() => {
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        document.body.style.cursor = "default";
-      }}
-    >
-      <planeGeometry args={zone.size} />
-      <meshBasicMaterial
-        map={texture}
-        transparent
-        opacity={selected ? 1 : 0.95}
-        toneMapped={false}
-      />
-    </mesh>
+    <ZonePlaneMesh
+      zone={zone}
+      map={texture}
+      selected={selected}
+      editMode={editMode}
+      onSelect={onSelect}
+    />
   );
 }
 
@@ -121,6 +135,7 @@ export function AdZonePlane({
   zone,
   adImageUrl,
   selected,
+  editMode = false,
   onSelect,
 }: AdZonePlaneProps) {
   if (adImageUrl) {
@@ -129,12 +144,18 @@ export function AdZonePlane({
         zone={zone}
         adImageUrl={adImageUrl}
         selected={selected}
+        editMode={editMode}
         onSelect={onSelect}
       />
     );
   }
 
   return (
-    <PlaceholderPlane zone={zone} selected={selected} onSelect={onSelect} />
+    <PlaceholderPlane
+      zone={zone}
+      selected={selected}
+      editMode={editMode}
+      onSelect={onSelect}
+    />
   );
 }

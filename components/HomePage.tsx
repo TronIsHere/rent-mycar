@@ -113,7 +113,7 @@ export function HomePage() {
 
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pb-2 lg:pr-1">
               {loading
-                ? Array.from({ length: 6 }).map((_, index) => (
+                ? Array.from({ length: 7 }).map((_, index) => (
                     <div
                       key={index}
                       className="h-24 animate-pulse rounded-2xl bg-surface-muted sm:h-28"
