@@ -292,7 +292,7 @@ export function BidSheet({
           <img
             src={previewUrl}
             alt="پیش‌نمایش تبلیغ"
-            className="mt-2 h-32 w-full rounded-xl border border-border object-cover"
+            className="mt-2 h-32 w-full rounded-xl border border-border bg-background object-contain"
           />
         )}
       </div>

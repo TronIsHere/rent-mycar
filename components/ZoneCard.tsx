@@ -42,7 +42,7 @@ export function ZoneCard({ zone, selected, onSelect }: ZoneCardProps) {
           <img
             src={winning.adImageUrl}
             alt={`تبلیغ ${zone.label}`}
-            className="h-14 w-14 shrink-0 rounded-lg border border-border object-cover"
+            className="h-14 w-14 shrink-0 rounded-lg border border-border bg-background object-contain"
           />
         ) : (
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-border bg-background text-xs text-muted">

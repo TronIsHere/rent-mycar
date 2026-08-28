@@ -1,9 +1,9 @@
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
-import { getMediaProxyUrl } from "@/lib/media-url";
-import { isS3Configured, uploadToS3 } from "@/lib/s3";
+import { extractObjectKey, getMediaProxyUrl } from "@/lib/media-url";
+import { deleteFromS3, isS3Configured, uploadToS3 } from "@/lib/s3";
 import {
   getLocalUploadPath,
   getUploadObjectKey,
@@ -55,6 +55,23 @@ export async function saveAdImage(file: File): Promise<string> {
     .toBuffer();
 
   return saveProcessedImage("ads", processed);
+}
+
+export async function deleteMediaByUrl(url: string): Promise<void> {
+  const key = extractObjectKey(url);
+  if (!key) return;
+
+  if (isS3Configured()) {
+    await deleteFromS3(key);
+    return;
+  }
+
+  const filePath = getLocalUploadPath(key);
+  try {
+    await unlink(filePath);
+  } catch {
+    // File may already be missing; ignore.
+  }
 }
 
 export async function savePaymentScreenshot(file: File): Promise<string> {

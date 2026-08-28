@@ -1,4 +1,9 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getMediaProxyUrl } from "@/lib/media-url";
 
 function requireEnv(name: string): string {
@@ -85,6 +90,17 @@ export async function uploadToS3(
   );
 
   return getPublicObjectUrl(key);
+}
+
+export async function deleteFromS3(key: string): Promise<void> {
+  const bucket = requireEnv("S3_BUCKET");
+
+  await getS3Client().send(
+    new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    }),
+  );
 }
 
 export async function getObjectFromS3(

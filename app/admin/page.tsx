@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getZoneBySlug } from "@/lib/zones";
@@ -50,30 +50,82 @@ function BidCard({
   bid,
   actionId,
   onAction,
+  onEditAdImage,
   showActions = false,
 }: {
   bid: AdminBid;
   actionId: string | null;
   onAction?: (id: string, status: "approved" | "rejected") => void;
+  onEditAdImage?: (id: string, file: File) => Promise<void>;
   showActions?: boolean;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState(false);
+  const [newImage, setNewImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!newImage) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(newImage);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [newImage]);
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setNewImage(null);
+    setEditError(null);
+  };
+
+  const handleSaveImage = async () => {
+    if (!newImage || !onEditAdImage) return;
+    setSaving(true);
+    setEditError(null);
+    try {
+      await onEditAdImage(bid._id, newImage);
+      cancelEdit();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "خطا در ذخیره تصویر");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const displayImageUrl = previewUrl ?? bid.adImageUrl;
+
   return (
     <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex gap-4">
         <div className="flex shrink-0 flex-col items-center gap-1.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={bid.adImageUrl}
+            src={displayImageUrl}
             alt="تبلیغ"
-            className="h-24 w-24 rounded-xl border border-border object-cover"
+            className="h-24 w-24 rounded-xl border border-border bg-background object-contain"
           />
-          <a
-            href={bid.adImageUrl}
-            download={`ad-${bid.bidderName}.webp`}
-            className="text-xs font-medium text-accent hover:underline"
-          >
-            دانلود
-          </a>
+          {!editing && (
+            <a
+              href={bid.adImageUrl}
+              download={`ad-${bid.bidderName}.webp`}
+              className="text-xs font-medium text-accent hover:underline"
+            >
+              دانلود
+            </a>
+          )}
+          {onEditAdImage && !editing && (
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="text-xs font-medium text-accent hover:underline"
+            >
+              ویرایش تصویر
+            </button>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -126,6 +178,45 @@ function BidCard({
           )}
         </div>
       </div>
+      {editing && onEditAdImage && (
+        <div className="mt-4 space-y-3 rounded-xl border border-border bg-background p-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => setNewImage(e.target.files?.[0] ?? null)}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border px-4 py-4 text-sm text-muted transition hover:border-accent hover:text-accent"
+          >
+            {newImage ? newImage.name : "انتخاب تصویر جدید"}
+          </button>
+          {editError && (
+            <p className="text-xs text-error-text">{editError}</p>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={!newImage || saving}
+              onClick={() => void handleSaveImage()}
+              className="flex-1 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent-hover disabled:opacity-60"
+            >
+              {saving ? "در حال ذخیره..." : "ذخیره تصویر"}
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={cancelEdit}
+              className="flex-1 rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:bg-card disabled:opacity-60"
+            >
+              انصراف
+            </button>
+          </div>
+        </div>
+      )}
       {showActions && onAction && (
         <div className="mt-4 flex gap-3">
           <button
@@ -280,6 +371,37 @@ export default function AdminPage() {
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
     fetchData(password);
+  };
+
+  const handleEditAdImage = async (id: string, file: File) => {
+    const adminPassword = sessionStorage.getItem("adminPassword") ?? password;
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("adImage", file);
+
+    const response = await fetch(`/api/admin/bids/${id}`, {
+      method: "PATCH",
+      headers: adminHeaders(adminPassword),
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error ?? "خطا در به‌روزرسانی تصویر");
+    }
+
+    const refreshBids = async () => {
+      const bidsResponse = await fetch("/api/admin/bids", {
+        headers: adminHeaders(adminPassword),
+      });
+      if (bidsResponse.ok) {
+        const bidsData = await bidsResponse.json();
+        setPendingBids(bidsData.pending);
+        setApprovedBids(bidsData.approved);
+      }
+    };
+
+    await refreshBids();
   };
 
   const handleAction = async (id: string, status: "approved" | "rejected") => {
@@ -499,6 +621,7 @@ export default function AdminPage() {
                   bid={bid}
                   actionId={actionId}
                   onAction={handleAction}
+                  onEditAdImage={handleEditAdImage}
                   showActions
                 />
               ))}
@@ -524,7 +647,12 @@ export default function AdminPage() {
           ) : (
             <div className="space-y-4">
               {approvedBids.map((bid) => (
-                <BidCard key={bid._id} bid={bid} actionId={actionId} />
+                <BidCard
+                  key={bid._id}
+                  bid={bid}
+                  actionId={actionId}
+                  onEditAdImage={handleEditAdImage}
+                />
               ))}
             </div>
           )}

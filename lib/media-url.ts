@@ -1,6 +1,6 @@
 const UPLOADS_PREFIX = "uploads/";
 
-function extractObjectKey(url: string): string | null {
+export function extractObjectKey(url: string): string | null {
   if (url.startsWith("/api/media/")) {
     return url.slice("/api/media/".length);
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Edges } from "@react-three/drei";
 import { useLoader } from "@react-three/fiber";
 import { CanvasTexture, SRGBColorSpace, TextureLoader, type Texture } from "three";
@@ -15,6 +15,48 @@ type AdZonePlaneProps = {
   editMode?: boolean;
   onSelect: (slug: string) => void;
 };
+
+function createContainedTexture(
+  image: HTMLImageElement,
+  planeWidth: number,
+  planeHeight: number,
+  isDark: boolean,
+) {
+  const planeAspect = planeWidth / planeHeight;
+  const imageAspect = image.width / image.height;
+
+  const canvas = document.createElement("canvas");
+  canvas.height = 512;
+  canvas.width = Math.round(canvas.height * planeAspect);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.fillStyle = isDark ? "#1e1e1e" : "#e8e8e8";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  let drawWidth: number;
+  let drawHeight: number;
+  let drawX: number;
+  let drawY: number;
+
+  if (imageAspect > planeAspect) {
+    drawWidth = canvas.width;
+    drawHeight = canvas.width / imageAspect;
+    drawX = 0;
+    drawY = (canvas.height - drawHeight) / 2;
+  } else {
+    drawHeight = canvas.height;
+    drawWidth = canvas.height * imageAspect;
+    drawX = (canvas.width - drawWidth) / 2;
+    drawY = 0;
+  }
+
+  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
 
 function createPlaceholderTexture(label: string, isDark: boolean, width: number, height: number) {
   const canvas = document.createElement("canvas");
@@ -119,14 +161,32 @@ function AdImagePlane({
   editMode = false,
   onSelect,
 }: AdZonePlaneProps & { adImageUrl: string }) {
-  const texture = useLoader(TextureLoader, adImageUrl, (loader) => {
+  const isDark = useIsDark();
+  const loadedTexture = useLoader(TextureLoader, adImageUrl, (loader) => {
     loader.setCrossOrigin("anonymous");
   });
+
+  const map = useMemo(() => {
+    const image = loadedTexture.image as HTMLImageElement;
+    if (!image?.width) return loadedTexture;
+    return (
+      createContainedTexture(image, zone.size[0], zone.size[1], isDark) ??
+      loadedTexture
+    );
+  }, [loadedTexture, zone.size, isDark]);
+
+  useEffect(() => {
+    return () => {
+      if (map !== loadedTexture) {
+        map.dispose();
+      }
+    };
+  }, [map, loadedTexture]);
 
   return (
     <ZonePlaneMesh
       zone={zone}
-      map={texture}
+      map={map}
       selected={selected}
       editMode={editMode}
       onSelect={onSelect}

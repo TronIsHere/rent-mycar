@@ -168,6 +168,18 @@ export async function updateBidStatus(
   return result.modifiedCount === 1;
 }
 
+export async function updateBidAdImage(
+  id: string,
+  adImageUrl: string,
+): Promise<boolean> {
+  const collection = await getBidsCollection();
+  const result = await collection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { adImageUrl } },
+  );
+  return result.modifiedCount === 1;
+}
+
 export async function getBidById(id: string): Promise<BidDocument | null> {
   const collection = await getBidsCollection();
   return collection.findOne({ _id: new ObjectId(id) }) as Promise<BidDocument | null>;
