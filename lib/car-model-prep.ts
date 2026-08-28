@@ -12,6 +12,8 @@ const BODY_PAINT = new Color("#0d0d0d");
 const WINDOW_GLASS = new Color("#3b82d9");
 const HEADLIGHT = new Color("#ffb347");
 const TAILLIGHT = new Color("#e81919");
+const TAILLIGHT_DIM = new Color("#c93520");
+const TAILLIGHT_HOUSING = new Color("#d63e4d");
 const TARGET_SIZE = 2.2;
 
 function getMeshContext(mesh: Mesh) {
@@ -45,7 +47,10 @@ function setEmissive(material: Material, color: Color, intensity = 0.6) {
   if ("emissive" in material && material.emissive instanceof Color) {
     material.emissive.copy(color);
   }
-  if ("emissiveIntensity" in material && typeof material.emissiveIntensity === "number") {
+  if (
+    "emissiveIntensity" in material &&
+    typeof material.emissiveIntensity === "number"
+  ) {
     material.emissiveIntensity = intensity;
   }
 }
@@ -60,10 +65,18 @@ function setPbr(
     roughness?: number;
   },
 ) {
-  if ("metalness" in material && typeof material.metalness === "number" && metalness !== undefined) {
+  if (
+    "metalness" in material &&
+    typeof material.metalness === "number" &&
+    metalness !== undefined
+  ) {
     material.metalness = metalness;
   }
-  if ("roughness" in material && typeof material.roughness === "number" && roughness !== undefined) {
+  if (
+    "roughness" in material &&
+    typeof material.roughness === "number" &&
+    roughness !== undefined
+  ) {
     material.roughness = roughness;
   }
 }
@@ -76,6 +89,12 @@ function setTransparent(
   material.transparent = true;
   material.opacity = opacity;
   material.depthWrite = depthWrite;
+}
+
+function setOpaque(material: Material) {
+  material.transparent = false;
+  material.opacity = 1;
+  material.depthWrite = true;
 }
 
 function applyWindowGlass(material: Material) {
@@ -102,23 +121,41 @@ function applyHeadlightLens(material: Material) {
 function applyTaillight(material: Material) {
   setColor(material, TAILLIGHT);
   setEmissive(material, TAILLIGHT, 1);
-  setTransparent(material, 0.78);
+  setOpaque(material);
   setPbr(material, { metalness: 0.05, roughness: 0.35 });
 }
 
-function applyTaillightLens(material: Material) {
-  setColor(material, TAILLIGHT);
-  setEmissive(material, TAILLIGHT, 0.55);
-  setTransparent(material, 0.65);
-  setPbr(material, { metalness: 0.1, roughness: 0.25 });
+function applyTaillightDim(material: Material) {
+  setColor(material, TAILLIGHT_DIM);
+  setEmissive(material, TAILLIGHT_DIM, 0.45);
+  setOpaque(material);
+  setPbr(material, { metalness: 0.05, roughness: 0.4 });
 }
 
-function applyClearGlass(material: Material) {
+function applyTaillightHousing(material: Material) {
+  setColor(material, TAILLIGHT_HOUSING);
+  if ("emissive" in material && material.emissive instanceof Color) {
+    material.emissive.set("#000000");
+  }
+  if (
+    "emissiveIntensity" in material &&
+    typeof material.emissiveIntensity === "number"
+  ) {
+    material.emissiveIntensity = 0;
+  }
+  setOpaque(material);
+  setPbr(material, { metalness: 0.2, roughness: 0.55 });
+}
+
+function applyTaillightGlass(material: Material) {
   setColor(material, new Color("#ffffff"));
   if ("emissive" in material && material.emissive instanceof Color) {
     material.emissive.set("#000000");
   }
-  if ("emissiveIntensity" in material && typeof material.emissiveIntensity === "number") {
+  if (
+    "emissiveIntensity" in material &&
+    typeof material.emissiveIntensity === "number"
+  ) {
     material.emissiveIntensity = 0;
   }
   setTransparent(material, 0.35);
@@ -145,26 +182,22 @@ function applyMeshMaterialStyle(mesh: Mesh, material: Material) {
   } else if (material.name === "long" || material.name === "fog") {
     applyHeadlight(material);
     isTransparentPart = true;
-  } else if (
-    material.name === "rr" ||
-    material.name === "rev" ||
-    material.name === "rrrrf" ||
-    material.name === "ree"
-  ) {
-    applyTaillight(material);
-    isTransparentPart = true;
+  } else if (material.name === "rrrrf") {
+    applyTaillightDim(material);
   } else if (
     (material.name === "povll" || material.name === "povrr") &&
     context.includes("headlightframe")
   ) {
     applyHeadlight(material);
     isTransparentPart = true;
-  } else if (
-    (material.name === "povll" || material.name === "povrr") &&
-    context.includes("taillightframe")
-  ) {
-    applyTaillight(material);
-    isTransparentPart = true;
+  } else if (context.includes("taillightframe")) {
+    if (material.name === "rr") {
+      applyTaillight(material);
+    } else if (material.name === "rev") {
+      applyTaillightDim(material);
+    } else {
+      applyTaillightHousing(material);
+    }
   } else if (material.name === "In_P207") {
     if (
       context.includes("windshield") ||
@@ -181,13 +214,7 @@ function applyMeshMaterialStyle(mesh: Mesh, material: Material) {
       context.includes("hatch_taillight_l") ||
       context.includes("hatch_taillight_r")
     ) {
-      applyClearGlass(material);
-      isTransparentPart = true;
-    } else if (
-      context.includes("taillight") &&
-      !context.includes("taillightframe")
-    ) {
-      applyTaillightLens(material);
+      applyTaillightGlass(material);
       isTransparentPart = true;
     }
   }
