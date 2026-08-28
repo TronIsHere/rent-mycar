@@ -4,6 +4,7 @@ import {
   verifyAdminPassword,
 } from "@/lib/admin-auth";
 import {
+  deleteBid,
   getBidById,
   updateBidAdImage,
   updateBidStatus,
@@ -95,5 +96,41 @@ export async function PATCH(request: Request, context: RouteContext) {
     const message =
       error instanceof Error ? error.message : "خطا در به‌روزرسانی پیشنهاد";
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  if (!verifyAdminPassword(_request)) {
+    return unauthorizedResponse();
+  }
+
+  try {
+    const { id } = await context.params;
+    const bid = await getBidById(id);
+    if (!bid) {
+      return NextResponse.json(
+        { error: "پیشنهاد یافت نشد." },
+        { status: 404 },
+      );
+    }
+
+    await deleteBid(id);
+
+    void deleteMediaByUrl(bid.adImageUrl).catch((error) => {
+      console.error("Failed to delete ad image:", error);
+    });
+    if (bid.paymentScreenshotUrl) {
+      void deleteMediaByUrl(bid.paymentScreenshotUrl).catch((error) => {
+        console.error("Failed to delete payment screenshot:", error);
+      });
+    }
+
+    return NextResponse.json({ id });
+  } catch (error) {
+    console.error("DELETE /api/admin/bids/[id] error:", error);
+    return NextResponse.json(
+      { error: "خطا در حذف پیشنهاد" },
+      { status: 500 },
+    );
   }
 }

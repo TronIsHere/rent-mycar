@@ -180,6 +180,12 @@ export async function updateBidAdImage(
   return result.modifiedCount === 1;
 }
 
+export async function deleteBid(id: string): Promise<boolean> {
+  const collection = await getBidsCollection();
+  const result = await collection.deleteOne({ _id: new ObjectId(id) });
+  return result.deletedCount === 1;
+}
+
 export async function getBidById(id: string): Promise<BidDocument | null> {
   const collection = await getBidsCollection();
   return collection.findOne({ _id: new ObjectId(id) }) as Promise<BidDocument | null>;

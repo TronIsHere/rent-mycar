@@ -51,12 +51,14 @@ function BidCard({
   actionId,
   onAction,
   onEditAdImage,
+  onDelete,
   showActions = false,
 }: {
   bid: AdminBid;
   actionId: string | null;
   onAction?: (id: string, status: "approved" | "rejected") => void;
   onEditAdImage?: (id: string, file: File) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
   showActions?: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,6 +96,15 @@ function BidCard({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    const confirmed = window.confirm(
+      `آیا از حذف پیشنهاد «${bid.bidderName}» مطمئن هستید؟`,
+    );
+    if (!confirmed) return;
+    await onDelete(bid._id);
   };
 
   const displayImageUrl = previewUrl ?? bid.adImageUrl;
@@ -234,6 +245,18 @@ function BidCard({
             className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-background disabled:opacity-60"
           >
             رد
+          </button>
+        </div>
+      )}
+      {onDelete && !editing && (
+        <div className="mt-4 border-t border-border pt-4">
+          <button
+            type="button"
+            disabled={actionId === bid._id}
+            onClick={() => void handleDelete()}
+            className="w-full rounded-xl border border-error-text/30 px-4 py-2.5 text-sm font-semibold text-error-text hover:bg-error-bg disabled:opacity-60"
+          >
+            {actionId === bid._id ? "در حال حذف..." : "حذف پیشنهاد"}
           </button>
         </div>
       )}
@@ -402,6 +425,41 @@ export default function AdminPage() {
     };
 
     await refreshBids();
+  };
+
+  const handleDelete = async (id: string) => {
+    const adminPassword = sessionStorage.getItem("adminPassword") ?? password;
+    setActionId(id);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/admin/bids/${id}`, {
+        method: "DELETE",
+        headers: adminHeaders(adminPassword),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "خطا در حذف");
+      }
+
+      const [bidsResponse, analyticsResponse] = await Promise.all([
+        fetch("/api/admin/bids", { headers: adminHeaders(adminPassword) }),
+        fetch("/api/admin/analytics", { headers: adminHeaders(adminPassword) }),
+      ]);
+
+      if (bidsResponse.ok) {
+        const bidsData = await bidsResponse.json();
+        setPendingBids(bidsData.pending);
+        setApprovedBids(bidsData.approved);
+      }
+      if (analyticsResponse.ok) {
+        setAnalytics(await analyticsResponse.json());
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "خطا در حذف");
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleAction = async (id: string, status: "approved" | "rejected") => {
@@ -622,6 +680,7 @@ export default function AdminPage() {
                   actionId={actionId}
                   onAction={handleAction}
                   onEditAdImage={handleEditAdImage}
+                  onDelete={handleDelete}
                   showActions
                 />
               ))}
@@ -652,6 +711,7 @@ export default function AdminPage() {
                   bid={bid}
                   actionId={actionId}
                   onEditAdImage={handleEditAdImage}
+                  onDelete={handleDelete}
                 />
               ))}
             </div>
