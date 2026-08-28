@@ -13,16 +13,28 @@ const insights = [
   },
 ];
 
-export function AdInsights() {
+type AdInsightsProps = {
+  embedded?: boolean;
+};
+
+export function AdInsights({ embedded = false }: AdInsightsProps) {
   return (
     <section
       aria-label="راهنمای اجاره فضای تبلیغاتی"
-      className="rounded-2xl border border-border bg-card p-4 sm:p-5"
+      className={
+        embedded
+          ? undefined
+          : "rounded-2xl border border-border bg-card p-4 sm:p-5"
+      }
     >
-      <h2 className="text-sm font-bold text-foreground sm:text-base">
-        نکات مهم
-      </h2>
-      <ul className="mt-3 space-y-3">
+      {!embedded ? (
+        <h2 className="text-sm font-bold text-foreground sm:text-base">
+          نکات مهم
+        </h2>
+      ) : (
+        <p className="mb-1 text-sm font-bold text-foreground">نکات مهم</p>
+      )}
+      <ul className={embedded ? "space-y-3" : "mt-3 space-y-3"}>
         {insights.map((item) => (
           <li key={item.title} className="text-sm leading-7">
             <p className="font-medium text-foreground">{item.title}</p>
