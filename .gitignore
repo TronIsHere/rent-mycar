@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# uploaded ad images
+/public/uploads/ads/*
+!/public/uploads/ads/.gitkeep

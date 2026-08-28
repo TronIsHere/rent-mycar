@@ -1,26 +1,170 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: "IRANSans";
+  src: url("/fonts/IRANSans-Reg.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IRANSans";
+  src: url("/fonts/IRANSans-Light.woff") format("woff");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IRANSans";
+  src: url("/fonts/IRANSans-SemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IRANSans";
+  src: url("/fonts/IRANSans-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f0f0f0;
+  --foreground: #121212;
+  --card: #ffffff;
+  --muted: #888888;
+  --accent: #888888;
+  --accent-hover: #666666;
+  --accent-foreground: #121212;
+  --border: #444444;
+  --success: #888888;
+  --warning: #888888;
+  --surface-muted: #e8e8e8;
+  --selected: rgb(136 136 136 / 0.14);
+  --accent-muted: rgb(136 136 136 / 0.18);
+  --error-bg: #e8e8e8;
+  --error-text: #121212;
+  --success-bg: #e8e8e8;
+  --success-text: #121212;
+  --viewer-from: #e8e8e8;
+  --viewer-to: #d8d8d8;
+  --overlay: rgb(18 18 18 / 0.5);
+}
+
+.dark {
+  --background: #121212;
+  --foreground: #e0e0e0;
+  --card: #1e1e1e;
+  --muted: #b0b0b0;
+  --accent: #888888;
+  --accent-hover: #999999;
+  --accent-foreground: #121212;
+  --border: #444444;
+  --success: #888888;
+  --warning: #888888;
+  --surface-muted: #1a1a1a;
+  --selected: rgb(136 136 136 / 0.2);
+  --accent-muted: rgb(136 136 136 / 0.28);
+  --error-bg: #1e1e1e;
+  --error-text: #e0e0e0;
+  --success-bg: #1e1e1e;
+  --success-text: #e0e0e0;
+  --viewer-from: #121212;
+  --viewer-to: #1e1e1e;
+  --overlay: rgb(0 0 0 / 0.75);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-surface-muted: var(--surface-muted);
+  --color-selected: var(--selected);
+  --color-accent-muted: var(--accent-muted);
+  --color-error-bg: var(--error-bg);
+  --color-error-text: var(--error-text);
+  --color-success-bg: var(--success-bg);
+  --color-success-text: var(--success-text);
+  --font-sans: "IRANSans", system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow-x: hidden;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.viewer-gradient {
+  background: linear-gradient(to bottom, var(--viewer-from), var(--viewer-to));
+}
+
+.touch-none {
+  touch-action: none;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
