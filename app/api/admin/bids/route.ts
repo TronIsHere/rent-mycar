@@ -3,6 +3,7 @@ import {
   unauthorizedResponse,
   verifyAdminPassword,
 } from "@/lib/admin-auth";
+import { resolveMediaUrl } from "@/lib/media-url";
 import {
   getBidsByStatus,
   getWinningBidForZone,
@@ -20,8 +21,10 @@ function serializeBid(bid: BidDocument, isWinning = false) {
     bidderName: bid.bidderName,
     phone: bid.phone,
     amount: bid.amount,
-    adImageUrl: bid.adImageUrl,
-    paymentScreenshotUrl: bid.paymentScreenshotUrl,
+    adImageUrl: resolveMediaUrl(bid.adImageUrl),
+    paymentScreenshotUrl: bid.paymentScreenshotUrl
+      ? resolveMediaUrl(bid.paymentScreenshotUrl)
+      : undefined,
     paymentSubmittedAt: bid.paymentSubmittedAt?.toISOString(),
     status: bid.status,
     isWinning,

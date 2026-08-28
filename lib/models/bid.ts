@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
+import { resolveMediaUrl } from "@/lib/media-url";
 import { AD_ZONES, type ZoneSlug } from "@/lib/zones";
 
 export type BidStatus = "pending" | "approved" | "rejected";
@@ -53,7 +54,7 @@ export async function getWinningBidForZone(
     bidderName: bid.bidderName,
     phone: bid.phone,
     amount: bid.amount,
-    adImageUrl: bid.adImageUrl,
+    adImageUrl: resolveMediaUrl(bid.adImageUrl),
     createdAt: bid.createdAt.toISOString(),
   };
 }

@@ -2,7 +2,12 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
+import { getMediaProxyUrl } from "@/lib/media-url";
 import { isS3Configured, uploadToS3 } from "@/lib/s3";
+import {
+  getLocalUploadPath,
+  getUploadObjectKey,
+} from "@/lib/uploads-path";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -28,17 +33,17 @@ async function saveProcessedImage(
   processed: Buffer,
 ): Promise<string> {
   const filename = `${randomUUID()}.webp`;
-  const objectKey = `uploads/${folder}/${filename}`;
+  const objectKey = getUploadObjectKey(folder, filename);
 
   if (isS3Configured()) {
     return uploadToS3(objectKey, processed, "image/webp");
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads", folder);
-  await mkdir(uploadsDir, { recursive: true });
-  await writeFile(path.join(uploadsDir, filename), processed);
+  const filePath = getLocalUploadPath(objectKey);
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, processed);
 
-  return `/uploads/${folder}/${filename}`;
+  return getMediaProxyUrl(objectKey);
 }
 
 export async function saveAdImage(file: File): Promise<string> {

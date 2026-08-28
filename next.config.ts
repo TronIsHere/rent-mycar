@@ -22,7 +22,10 @@ function getS3ImagePatterns() {
   if (endpoint && bucket) {
     try {
       const endpointUrl = new URL(endpoint);
-      const forcePathStyle = process.env.S3_FORCE_PATH_STYLE === "true";
+      const forcePathStyle =
+        process.env.S3_FORCE_PATH_STYLE === "true" ||
+        (process.env.S3_FORCE_PATH_STYLE !== "false" &&
+          (endpoint.includes("your-objectstorage.com") ?? false));
 
       if (forcePathStyle) {
         patterns.push({
