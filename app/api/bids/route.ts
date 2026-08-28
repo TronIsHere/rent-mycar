@@ -78,7 +78,14 @@ export async function POST(request: Request) {
       adImageUrl,
     });
 
-    return NextResponse.json({ id: bidId, status: "pending" }, { status: 201 });
+    const cardNumber = process.env.PAYMENT_CARD_NUMBER ?? "";
+    const cardHolder = process.env.PAYMENT_CARD_HOLDER ?? "";
+    const cardBank = process.env.PAYMENT_CARD_BANK ?? "";
+
+    return NextResponse.json(
+      { id: bidId, status: "pending", amount, cardNumber, cardHolder, cardBank },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("POST /api/bids error:", error);
     const message =

@@ -3,13 +3,13 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { BidSheet } from "@/components/BidSheet";
+import { SocialLinks } from "@/components/SocialLinks";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ZoneCard } from "@/components/ZoneCard";
 import type { ZoneWithBid } from "@/lib/types";
 
 const CarViewer = dynamic(
-  () =>
-    import("@/components/car/CarViewer").then((mod) => mod.CarViewer),
+  () => import("@/components/car/CarViewer").then((mod) => mod.CarViewer),
   {
     ssr: false,
     loading: () => (
@@ -47,8 +47,7 @@ export function HomePage() {
     fetchZones();
   }, [fetchZones]);
 
-  const selectedZone =
-    zones.find((zone) => zone.slug === selectedSlug) ?? null;
+  const selectedZone = zones.find((zone) => zone.slug === selectedSlug) ?? null;
 
   const handleSelectZone = (slug: string) => {
     setSelectedSlug(slug);
@@ -60,17 +59,22 @@ export function HomePage() {
       <header className="shrink-0 border-b border-border bg-card px-4 py-4 sm:px-6 sm:py-5">
         <div className="mx-auto flex max-w-6xl items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-accent">اجاره فضای تبلیغاتی</p>
-          <h1 className="mt-1 text-xl font-bold sm:text-3xl">
-            تبلیغ خود را روی پژو ۲۰۷ بگذارید
-          </h1>
-          <p className="mt-1.5 hidden max-w-2xl text-sm leading-7 text-muted sm:block sm:text-base">
-            یکی از نقاط خودرو را انتخاب کنید، پیشنهاد بالاتر بدهید و تصویر
-            تبلیغتان را آپلود کنید. پس از تأیید پرداخت، تبلیغ شما روی خودرو
-            نمایش داده می‌شود.
-          </p>
+            <p className="text-sm font-medium text-accent">
+              اجاره فضای تبلیغاتی
+            </p>
+            <h1 className="mt-1 text-xl font-bold sm:text-3xl">
+              تبلیغ خود را روی پژو ۲۰۷ بگذارید
+            </h1>
+            <p className="mt-1.5 hidden max-w-2xl text-sm leading-7 text-muted sm:block sm:text-base">
+              یکی از نقاط خودرو را انتخاب کنید، پیشنهاد بالاتر بدهید و تصویر
+              تبلیغتان را آپلود کنید. پس از تأیید پرداخت، تبلیغ شما روی خودرو
+              نمایش داده می‌شود.
+            </p>
           </div>
-          <ThemeToggle />
+          <div className="flex shrink-0 items-center gap-2">
+            <SocialLinks />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -105,7 +109,9 @@ export function HomePage() {
 
           <section className="flex min-h-0 flex-1 flex-col lg:max-h-[calc(100dvh-2rem)] lg:overflow-hidden">
             <div className="mb-3 flex shrink-0 items-center justify-between">
-              <h2 className="text-base font-bold sm:text-lg">فضاهای قابل اجاره</h2>
+              <h2 className="text-base font-bold sm:text-lg">
+                فضاهای قابل اجاره
+              </h2>
               <span className="text-xs text-muted sm:text-sm">
                 {zones.length.toLocaleString("fa-IR")} نقطه
               </span>

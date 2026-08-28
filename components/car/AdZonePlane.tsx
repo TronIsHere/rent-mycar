@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { Edges, useTexture } from "@react-three/drei";
-import { CanvasTexture, SRGBColorSpace, type Texture } from "three";
+import { Edges } from "@react-three/drei";
+import { useLoader } from "@react-three/fiber";
+import { CanvasTexture, SRGBColorSpace, TextureLoader, type Texture } from "three";
 import type { ThreeEvent } from "@react-three/fiber";
 import type { AdZoneWithTransform } from "@/lib/types";
 import { useIsDark } from "@/components/ThemeToggle";
@@ -118,7 +119,9 @@ function AdImagePlane({
   editMode = false,
   onSelect,
 }: AdZonePlaneProps & { adImageUrl: string }) {
-  const texture = useTexture(adImageUrl);
+  const texture = useLoader(TextureLoader, adImageUrl, (loader) => {
+    loader.setCrossOrigin("anonymous");
+  });
 
   return (
     <ZonePlaneMesh

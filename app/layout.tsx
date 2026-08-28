@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {themeInitScript}
         </Script>
       </head>
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="min-h-full flex flex-col antialiased">
+        <PageViewTracker />
+        {children}
+      </body>
     </html>
   );
 }

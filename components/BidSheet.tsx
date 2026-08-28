@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BluBankCard } from "@/components/BluBankCard";
 import { PriceDisplay } from "@/components/PriceDisplay";
+import { SocialLinks } from "@/components/SocialLinks";
+import { extractDigits, formatNumberDisplay, parseNumberInput } from "@/lib/format";
 import type { ZoneWithBid } from "@/lib/types";
 
 type BidSheetProps = {
@@ -26,8 +29,20 @@ export function BidSheet({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [step, setStep] = useState<"form" | "payment" | "done">("form");
+  const [bidId, setBidId] = useState<string | null>(null);
+  const [submittedAmount, setSubmittedAmount] = useState(0);
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardBank, setCardBank] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
+  const [paymentPreviewUrl, setPaymentPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const paymentFileInputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const minRequired = zone
@@ -45,9 +60,27 @@ export function BidSheet({
       setAdImage(null);
       setPreviewUrl(null);
       setError(null);
-      setSuccess(false);
+      setStep("form");
+      setBidId(null);
+      setSubmittedAmount(0);
+      setCardNumber("");
+      setCardHolder("");
+      setCardBank("");
+      setCopied(false);
+      setPaymentScreenshot(null);
+      setPaymentPreviewUrl(null);
     }
   }, [open, zone?.slug]);
+
+  useEffect(() => {
+    if (!paymentScreenshot) {
+      setPaymentPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(paymentScreenshot);
+    setPaymentPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [paymentScreenshot]);
 
   useEffect(() => {
     if (!adImage) {
@@ -86,7 +119,7 @@ export function BidSheet({
     event.preventDefault();
     setError(null);
 
-    const parsedAmount = Number(amount.replace(/[^\d]/g, ""));
+    const parsedAmount = parseNumberInput(amount);
 
     if (!bidderName.trim()) {
       setError("نام خود را وارد کنید.");
@@ -126,7 +159,12 @@ export function BidSheet({
         throw new Error(data.error ?? "خطا در ثبت پیشنهاد");
       }
 
-      setSuccess(true);
+      setBidId(data.id);
+      setSubmittedAmount(parsedAmount);
+      setCardNumber(data.cardNumber ?? "");
+      setCardHolder(data.cardHolder ?? "");
+      setCardBank(data.cardBank ?? "");
+      setStep("payment");
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطا در ثبت پیشنهاد");
@@ -135,7 +173,54 @@ export function BidSheet({
     }
   };
 
-  const formContent = (
+  const handlePaymentSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+
+    if (!bidId) return;
+
+    if (!paymentScreenshot) {
+      setError("تصویر رسید پرداخت را انتخاب کنید.");
+      return;
+    }
+
+    setPaymentLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("phone", phone.trim());
+      formData.append("screenshot", paymentScreenshot);
+
+      const response = await fetch(`/api/bids/${bidId}/payment`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "خطا در ثبت رسید پرداخت");
+      }
+
+      setStep("done");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "خطا در ثبت رسید پرداخت",
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleCopyCard = async () => {
+    try {
+      await navigator.clipboard.writeText(extractDigits(cardNumber));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("کپی شماره کارت انجام نشد.");
+    }
+  };
+
+  const formContent = step === "form" ? (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="rounded-xl bg-background p-3 text-sm">
         <p className="text-muted">فضای انتخاب‌شده</p>
@@ -178,8 +263,8 @@ export function BidSheet({
         <input
           type="text"
           inputMode="numeric"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          value={formatNumberDisplay(amount)}
+          onChange={(e) => setAmount(extractDigits(e.target.value))}
           className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
           placeholder={minRequired.toLocaleString("fa-IR")}
           dir="ltr"
@@ -200,7 +285,7 @@ export function BidSheet({
           onClick={() => fileInputRef.current?.click()}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-4 py-6 text-sm text-muted transition hover:border-accent hover:text-accent"
         >
-          {adImage ? adImage.name : "انتخاب تصویر تبلیغ"}
+          {adImage ? adImage.name : "انتخاب فایل تصویر تبلیغ"}
         </button>
         {previewUrl && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -218,23 +303,107 @@ export function BidSheet({
         </p>
       )}
 
-      {success && (
-        <p className="rounded-xl bg-success-bg px-4 py-3 text-sm text-success-text">
-          پیشنهاد شما ثبت شد و در انتظار تأیید است. پس از واریز، توسط مدیر تأیید
-          می‌شود.
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full rounded-xl bg-accent px-4 py-3.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover disabled:opacity-60"
+      >
+        {loading ? "در حال ارسال..." : "ثبت پیشنهاد"}
+      </button>
+    </form>
+  ) : step === "payment" ? (
+    <form onSubmit={handlePaymentSubmit} className="space-y-4">
+      <div className="rounded-xl bg-success-bg p-4 text-sm text-success-text">
+        پیشنهاد شما ثبت شد. لطفاً مبلغ زیر را واریز کنید.
+      </div>
+
+      <div className="rounded-xl bg-background p-4 text-sm">
+        <p className="text-muted">مبلغ قابل پرداخت</p>
+        <p className="mt-1 text-xl font-bold">
+          <PriceDisplay amount={submittedAmount} />
+        </p>
+      </div>
+
+      {cardNumber ? (
+        <div className="space-y-3">
+          <p className="text-center text-sm text-muted">شماره کارت برای واریز</p>
+          <BluBankCard
+            cardNumber={cardNumber}
+            cardHolder={cardHolder}
+            bankName={cardBank}
+            copied={copied}
+            onCopy={handleCopyCard}
+          />
+        </div>
+      ) : (
+        <div className="space-y-3 rounded-xl bg-error-bg px-4 py-3 text-sm text-error-text">
+          <p>شماره کارت پرداخت تنظیم نشده است. با پشتیبانی تماس بگیرید.</p>
+          <SocialLinks showHandles size="sm" />
+        </div>
+      )}
+
+      <div className="rounded-xl border border-border bg-background px-4 py-3 text-center text-sm">
+        <p className="text-muted">سوالی دارید؟</p>
+        <SocialLinks className="mt-2 justify-center" showHandles size="sm" />
+      </div>
+
+      <div className="space-y-1.5">
+        <span className="text-sm font-medium">تصویر رسید پرداخت</span>
+        <input
+          ref={paymentFileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) =>
+            setPaymentScreenshot(e.target.files?.[0] ?? null)
+          }
+        />
+        <button
+          type="button"
+          onClick={() => paymentFileInputRef.current?.click()}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-4 py-6 text-sm text-muted transition hover:border-accent hover:text-accent"
+        >
+          {paymentScreenshot
+            ? paymentScreenshot.name
+            : "انتخاب فایل تصویر رسید"}
+        </button>
+        {paymentPreviewUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={paymentPreviewUrl}
+            alt="پیش‌نمایش رسید"
+            className="mt-2 h-48 w-full rounded-xl border border-border object-contain bg-background"
+          />
+        )}
+      </div>
+
+      {error && (
+        <p className="rounded-xl bg-error-bg px-4 py-3 text-sm text-error-text">
+          {error}
         </p>
       )}
 
-      {!success && (
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-xl bg-accent px-4 py-3.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover disabled:opacity-60"
-        >
-          {loading ? "در حال ارسال..." : "ثبت پیشنهاد"}
-        </button>
-      )}
+      <button
+        type="submit"
+        disabled={paymentLoading || !cardNumber}
+        className="w-full rounded-xl bg-accent px-4 py-3.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover disabled:opacity-60"
+      >
+        {paymentLoading ? "در حال ارسال..." : "ثبت"}
+      </button>
     </form>
+  ) : (
+    <div className="space-y-4">
+      <p className="rounded-xl bg-success-bg px-4 py-3 text-sm text-success-text">
+        رسید پرداخت شما ثبت شد و پیشنهاد در انتظار تأیید مدیر است.
+      </p>
+      <button
+        type="button"
+        onClick={onClose}
+        className="w-full rounded-xl border border-border px-4 py-3.5 text-sm font-semibold transition hover:bg-background"
+      >
+        بستن
+      </button>
+    </div>
   );
 
   if (variant === "inline") {
