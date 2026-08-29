@@ -6,7 +6,6 @@ import { useLoader } from "@react-three/fiber";
 import { CanvasTexture, SRGBColorSpace, TextureLoader, type Texture } from "three";
 import type { ThreeEvent } from "@react-three/fiber";
 import type { AdZoneWithTransform } from "@/lib/types";
-import { useIsDark } from "@/components/ThemeToggle";
 
 type AdZonePlaneProps = {
   zone: AdZoneWithTransform;
@@ -135,10 +134,9 @@ function PlaceholderPlane({
   editMode = false,
   onSelect,
 }: Omit<AdZonePlaneProps, "adImageUrl"> & { editMode?: boolean }) {
-  const isDark = useIsDark();
   const texture = useMemo(
-    () => createPlaceholderTexture(zone.label, isDark, zone.size[0], zone.size[1]),
-    [zone.label, zone.size, isDark],
+    () => createPlaceholderTexture(zone.label, true, zone.size[0], zone.size[1]),
+    [zone.label, zone.size],
   );
 
   if (!texture) return null;
@@ -161,7 +159,6 @@ function AdImagePlane({
   editMode = false,
   onSelect,
 }: AdZonePlaneProps & { adImageUrl: string }) {
-  const isDark = useIsDark();
   const loadedTexture = useLoader(TextureLoader, adImageUrl, (loader) => {
     loader.setCrossOrigin("anonymous");
   });
@@ -170,10 +167,10 @@ function AdImagePlane({
     const image = loadedTexture.image as HTMLImageElement;
     if (!image?.width) return loadedTexture;
     return (
-      createContainedTexture(image, zone.size[0], zone.size[1], isDark) ??
+      createContainedTexture(image, zone.size[0], zone.size[1], true) ??
       loadedTexture
     );
-  }, [loadedTexture, zone.size, isDark]);
+  }, [loadedTexture, zone.size]);
 
   useEffect(() => {
     return () => {

@@ -1,0 +1,69 @@
+---
+description: Nginx body size and proxy timeouts for VPS / self-hosted apps
+alwaysApply: true
+---
+
+# Nginx upload body size (VPS / self-hosted)
+
+When an app behind nginx rejects uploads with HTTP **413**, or the UI shows a "file too large" message while the same file works locally:
+
+1. Assume nginx first. Default `client_max_body_size` is **1MB**.
+2. App-level limits (e.g. 6MB) do not matter if nginx rejects earlier. The request never reaches Node/Next/pm2.
+3. Symptom: no upload logs in the app process; nginx error log may show `client intended to send too large body`.
+
+## Fix
+
+In the site's nginx `server` (or relevant `location`) block:
+
+```nginx
+client_max_body_size 10M;
+```
+
+Then:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Set the value above the app's real max upload size (with a little headroom).
+
+## Checklist for new / other apps on the same VPS
+
+- [ ] Add `client_max_body_size` whenever the app accepts file uploads
+- [ ] Do not rely on local-only testing; local has no nginx limit
+- [ ] iPhone/Safari often sends larger JPEGs than the Photos app size suggests
+- [ ] Confirm with `/var/log/nginx/error.log` if uploads still 413 after deploy
+
+## bananaai
+
+- Site config: `/etc/nginx/sites-available/bananaai`
+- App listens on `127.0.0.1:3004`
+- App max image size is 6MB; nginx should stay at least `10M` for images
+- Seedance 2.5 reference videos can be up to **200MB**; set `client_max_body_size 200M` on `/api/upload/video` (or the whole server block) or 200MB refs will 413 before Node
+- Postponed rebrand target: maverickai.ir / MaverickAI
+
+# Nginx proxy timeouts (long generation / ffmpeg)
+
+When an API returns HTML **504 Gateway Time-out** (client may show `Unexpected token '<'`) while Node/pm2 is still working:
+
+1. Assume nginx `proxy_read_timeout` first. Default is often **60s**.
+2. Long routes (explainer stitch, TTS, ffmpeg mux) can exceed 60s even when the app `maxDuration` is 300.
+3. Symptom: browser gets nginx HTML; app logs may still show the job finishing later.
+
+## Fix
+
+In the bananaai `location` that proxies to Node (or the `server` block):
+
+```nginx
+proxy_connect_timeout 60s;
+proxy_send_timeout 300s;
+proxy_read_timeout 300s;
+```
+
+Then:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Explainer stitch should return a task id quickly and finish in the background; keep these timeouts high anyway for audio and other long POSTs.

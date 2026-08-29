@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+import { NoiseTexture } from "@/components/NoiseTexture";
 import { PageViewTracker } from "@/components/PageViewTracker";
-import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,13 +11,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <head>
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeInitScript}
-        </Script>
-      </head>
-      <body className="min-h-full flex flex-col antialiased">
+    <html lang="fa" dir="rtl" className="dark">
+      <body className="flex min-h-full flex-col antialiased">
+        <NoiseTexture />
         <PageViewTracker />
         {children}
       </body>

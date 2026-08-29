@@ -1,0 +1,32 @@
+---
+description: Never use em dashes (—) in user-facing UI copy
+alwaysApply: true
+---
+
+# No em dashes in UI
+
+Never use the em dash character (`—`) in user-facing UI text (labels, headings, descriptions, buttons, toasts, empty states, marketing copy, tooltips, alt text, meta descriptions shown as UI, etc.).
+
+## Replace with
+
+- Persian: comma `،`, period `.`, or rephrase with `و` / a new clause
+- English: comma `,`, colon `:`, parentheses, or a short rewrite
+- Missing/empty numeric placeholder: use `-` or `نامشخص`, not `—`
+
+## Examples
+
+```tsx
+// ❌ BAD
+"آثار تازه کاربران — پرامپت و مدل را ببینید"
+"JPG، PNG، WEBP — حداکثر ۶ مگابایت"
+`?? "—"`
+
+// ✅ GOOD
+"آثار تازه کاربران؛ پرامپت و مدل را ببینید"
+"JPG، PNG، WEBP، حداکثر ۶ مگابایت"
+`?? "-"`
+```
+
+## Out of scope
+
+Code comments, internal docs, and model prompts may keep em dashes. This rule is for anything the user reads on the site.

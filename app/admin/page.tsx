@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PriceDisplay } from "@/components/PriceDisplay";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { getZoneBySlug } from "@/lib/zones";
 
 type AdminBid = {
@@ -504,9 +503,6 @@ export default function AdminPage() {
   if (!authenticated) {
     return (
       <div className="flex min-h-screen flex-col bg-background px-4 py-6">
-        <div className="mx-auto flex w-full max-w-md justify-end">
-          <ThemeToggle />
-        </div>
         <div className="flex flex-1 items-center justify-center">
           <form
             onSubmit={handleLogin}
@@ -552,7 +548,6 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <a
               href="/"
               className="rounded-xl border border-border px-4 py-2 text-sm hover:bg-card"

@@ -19,26 +19,31 @@ type AdInsightsProps = {
 
 export function AdInsights({ embedded = false }: AdInsightsProps) {
   return (
-    <section
-      aria-label="راهنمای اجاره فضای تبلیغاتی"
-      className={
-        embedded
-          ? undefined
-          : "rounded-2xl border border-border bg-card p-4 sm:p-5"
-      }
-    >
-      {!embedded ? (
-        <h2 className="text-sm font-bold text-foreground sm:text-base">
-          نکات مهم
-        </h2>
-      ) : (
-        <p className="mb-1 text-sm font-bold text-foreground">نکات مهم</p>
+    <section aria-label="راهنمای اجاره فضای تبلیغاتی">
+      {!embedded && (
+        <div className="mb-6 border-b-2 border-border pb-4">
+          <h2 className="display-section">نکات مهم</h2>
+          <p className="mt-3 text-lg text-muted-foreground">
+            قبل از ثبت پیشنهاد بخوانید
+          </p>
+        </div>
       )}
-      <ul className={embedded ? "space-y-3" : "mt-3 space-y-3"}>
-        {insights.map((item) => (
-          <li key={item.title} className="text-sm leading-7">
-            <p className="font-medium text-foreground">{item.title}</p>
-            <p className="mt-0.5 text-muted">{item.body}</p>
+
+      <ul className="grid gap-px border-2 border-border bg-border">
+        {insights.map((item, index) => (
+          <li
+            key={item.title}
+            className="group kinetic-card bg-card p-6 transition-colors duration-300 hover:bg-accent hover:text-accent-foreground"
+          >
+            <p className="label-kinetic text-muted-foreground group-hover:text-black/60">
+              {String(index + 1).padStart(2, "0")}
+            </p>
+            <p className="mt-2 text-xl font-bold leading-tight md:text-2xl">
+              {item.title}
+            </p>
+            <p className="mt-3 text-base leading-8 text-muted-foreground group-hover:text-black/70 md:text-lg">
+              {item.body}
+            </p>
           </li>
         ))}
       </ul>

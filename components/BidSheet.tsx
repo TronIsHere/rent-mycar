@@ -4,8 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { BluBankCard } from "@/components/BluBankCard";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { SocialLinks } from "@/components/SocialLinks";
+import { StepIndicator } from "@/components/StepIndicator";
 import { extractDigits, formatNumberDisplay, parseNumberInput } from "@/lib/format";
 import type { ZoneWithBid } from "@/lib/types";
+
+const BID_STEPS = [
+  { id: "form", label: "اطلاعات" },
+  { id: "payment", label: "پرداخت" },
+  { id: "done", label: "تأیید" },
+];
 
 type BidSheetProps = {
   zone: ZoneWithBid | null;
@@ -220,63 +227,79 @@ export function BidSheet({
     }
   };
 
-  const formContent = step === "form" ? (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="rounded-xl bg-background p-3 text-sm">
-        <p className="text-muted">فضای انتخاب‌شده</p>
-        <p className="mt-1 font-semibold">{zone.label}</p>
-        <p className="mt-2 text-muted">
-          حداقل پیشنهاد:{" "}
+  const zoneSummary = (
+    <div className="border-2 border-border bg-muted p-5">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="label-kinetic text-muted-foreground">فضای انتخاب‌شده</p>
+          <p className="mt-1 text-2xl font-bold md:text-3xl">{zone.label}</p>
+        </div>
+        <div className="text-left">
+          <p className="label-kinetic text-muted-foreground">حداقل</p>
           <PriceDisplay
             amount={minRequired}
-            className="font-medium text-foreground"
+            className="mt-1 text-xl font-bold text-accent md:text-2xl"
           />
-        </p>
-        <p className="mt-2 border-t border-border pt-2 text-xs leading-6 text-muted">
-          تبلیغ شما تا زمانی که کسی پیشنهاد بالاتری ندهد و تأیید شود، روی خودرو
-          می‌ماند.
-        </p>
+        </div>
       </div>
+      <p className="mt-4 border-t-2 border-border pt-4 text-base leading-7 text-muted-foreground">
+        تبلیغ شما تا زمانی که کسی پیشنهاد بالاتری ندهد و تأیید شود، روی خودرو
+        می‌ماند.
+      </p>
+    </div>
+  );
 
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">نام شما</span>
+  const formContent = step === "form" ? (
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {zoneSummary}
+
+      <label className="block">
+        <span className="label-kinetic mb-2 block text-muted-foreground">
+          نام شما
+        </span>
         <input
           type="text"
           value={bidderName}
           onChange={(e) => setBidderName(e.target.value)}
-          className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          className="input-kinetic input-kinetic-sm"
           placeholder="نام و نام خانوادگی"
         />
       </label>
 
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">شماره موبایل</span>
+      <label className="block">
+        <span className="label-kinetic mb-2 block text-muted-foreground">
+          شماره موبایل
+        </span>
         <input
           type="tel"
           inputMode="numeric"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          className="input-kinetic input-kinetic-sm"
           placeholder="۰۹۱۲۳۴۵۶۷۸۹"
           dir="ltr"
         />
       </label>
 
-      <label className="block space-y-1.5">
-        <span className="text-sm font-medium">مبلغ پیشنهادی (تومان)</span>
+      <label className="block">
+        <span className="label-kinetic mb-2 block text-muted-foreground">
+          مبلغ پیشنهادی
+        </span>
         <input
           type="text"
           inputMode="numeric"
           value={formatNumberDisplay(amount)}
           onChange={(e) => setAmount(extractDigits(e.target.value))}
-          className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          className="input-kinetic"
           placeholder={minRequired.toLocaleString("fa-IR")}
           dir="ltr"
         />
       </label>
 
-      <div className="space-y-1.5">
-        <span className="text-sm font-medium">تصویر تبلیغ</span>
+      <div>
+        <span className="label-kinetic mb-2 block text-muted-foreground">
+          تصویر تبلیغ
+        </span>
         <input
           ref={fileInputRef}
           type="file"
@@ -287,43 +310,39 @@ export function BidSheet({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-4 py-6 text-sm text-muted transition hover:border-accent hover:text-accent"
+          className="btn-outline w-full border-dashed py-8"
         >
-          {adImage ? adImage.name : "انتخاب فایل تصویر تبلیغ"}
+          {adImage ? adImage.name : "انتخاب فایل JPG، PNG یا WEBP"}
         </button>
         {previewUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={previewUrl}
             alt="پیش‌نمایش تبلیغ"
-            className="mt-2 h-32 w-full rounded-xl border border-border bg-background object-contain"
+            className="mt-4 h-40 w-full border-2 border-border bg-background object-contain p-2"
           />
         )}
       </div>
 
       {error && (
-        <p className="rounded-xl bg-error-bg px-4 py-3 text-sm text-error-text">
+        <p className="border-2 border-error-text bg-error-bg px-4 py-3 text-sm text-error-text">
           {error}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-xl bg-accent px-4 py-3.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover disabled:opacity-60"
-      >
+      <button type="submit" disabled={loading} className="btn-primary w-full">
         {loading ? "در حال ارسال..." : "ثبت پیشنهاد"}
       </button>
     </form>
   ) : step === "payment" ? (
-    <form onSubmit={handlePaymentSubmit} className="space-y-4">
-      <div className="rounded-xl bg-success-bg p-4 text-sm text-success-text">
-        پیشنهاد شما ثبت شد. لطفاً مبلغ زیر را واریز کنید.
+    <form onSubmit={handlePaymentSubmit} className="space-y-8">
+      <div className="border-2 border-success bg-success-bg px-4 py-4 text-base font-bold text-success-text">
+        پیشنهاد شما ثبت شد. مبلغ زیر را واریز کنید.
       </div>
 
-      <div className="rounded-xl bg-background p-4 text-sm">
-        <p className="text-muted">مبلغ قابل پرداخت</p>
-        <p className="mt-1 text-xl font-bold">
+      <div className="border-2 border-border bg-muted p-6 text-center">
+        <p className="label-kinetic text-muted-foreground">مبلغ قابل پرداخت</p>
+        <p className="mt-2 text-3xl font-bold text-accent md:text-4xl">
           <PriceDisplay amount={submittedAmount} />
         </p>
       </div>
@@ -340,19 +359,21 @@ export function BidSheet({
           />
         </div>
       ) : (
-        <div className="space-y-3 rounded-xl bg-error-bg px-4 py-3 text-sm text-error-text">
+        <div className="space-y-3 border-2 border-error-text bg-error-bg px-4 py-4 text-sm text-error-text">
           <p>شماره کارت پرداخت تنظیم نشده است. با پشتیبانی تماس بگیرید.</p>
           <SocialLinks showHandles size="sm" />
         </div>
       )}
 
-      <div className="rounded-xl border border-border bg-background px-4 py-3 text-center text-sm">
-        <p className="text-muted">سوالی دارید؟</p>
-        <SocialLinks className="mt-2 justify-center" showHandles size="sm" />
+      <div className="border-2 border-border bg-muted px-4 py-4 text-center">
+        <p className="label-kinetic text-muted-foreground">سوالی دارید؟</p>
+        <SocialLinks className="mt-3 justify-center" showHandles size="sm" />
       </div>
 
-      <div className="space-y-1.5">
-        <span className="text-sm font-medium">تصویر رسید پرداخت</span>
+      <div>
+        <span className="label-kinetic mb-2 block text-muted-foreground">
+          تصویر رسید پرداخت
+        </span>
         <input
           ref={paymentFileInputRef}
           type="file"
@@ -365,7 +386,7 @@ export function BidSheet({
         <button
           type="button"
           onClick={() => paymentFileInputRef.current?.click()}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-4 py-6 text-sm text-muted transition hover:border-accent hover:text-accent"
+          className="btn-outline w-full border-dashed py-6"
         >
           {paymentScreenshot
             ? paymentScreenshot.name
@@ -376,13 +397,13 @@ export function BidSheet({
           <img
             src={paymentPreviewUrl}
             alt="پیش‌نمایش رسید"
-            className="mt-2 h-48 w-full rounded-xl border border-border object-contain bg-background"
+            className="mt-4 h-48 w-full border-2 border-border bg-background object-contain"
           />
         )}
       </div>
 
       {error && (
-        <p className="rounded-xl bg-error-bg px-4 py-3 text-sm text-error-text">
+        <p className="border-2 border-error-text bg-error-bg px-4 py-3 text-sm text-error-text">
           {error}
         </p>
       )}
@@ -390,38 +411,47 @@ export function BidSheet({
       <button
         type="submit"
         disabled={paymentLoading || !cardNumber}
-        className="w-full rounded-xl bg-accent px-4 py-3.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent-hover disabled:opacity-60"
+        className="btn-primary w-full"
       >
-        {paymentLoading ? "در حال ارسال..." : "ثبت"}
+        {paymentLoading ? "در حال ارسال..." : "ارسال رسید"}
       </button>
     </form>
   ) : (
-    <div className="space-y-4">
-      <p className="rounded-xl bg-success-bg px-4 py-3 text-sm text-success-text">
-        رسید پرداخت شما ثبت شد و پیشنهاد در انتظار تأیید مدیر است.
+    <div className="space-y-6 py-4 text-center">
+      <p className="display-number text-accent" aria-hidden>
+        ✓
       </p>
-      <button
-        type="button"
-        onClick={onClose}
-        className="w-full rounded-xl border border-border px-4 py-3.5 text-sm font-semibold transition hover:bg-background"
-      >
+      <div>
+        <p className="text-2xl font-bold md:text-3xl">رسید ثبت شد</p>
+        <p className="mt-3 text-base leading-8 text-muted-foreground md:text-lg">
+          پیشنهاد در انتظار تأیید مدیر است. پس از تأیید، تبلیغ روی خودرو نمایش
+          داده می‌شود.
+        </p>
+      </div>
+      <button type="button" onClick={onClose} className="btn-outline w-full">
         بستن
       </button>
     </div>
   );
 
-  if (variant === "inline") {
-    return (
-      <div
-        ref={panelRef}
-        className="rounded-2xl border border-border bg-card p-5 shadow-sm scroll-mt-4"
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold">ثبت پیشنهاد</h2>
-          <span className="rounded-full bg-accent-muted px-3 py-1 text-xs font-medium text-accent">
+  const header = (
+    <div className="mb-8 space-y-6">
+      <div className="flex items-start justify-between gap-4 border-b-2 border-border pb-4">
+        <h2 className="display-section text-3xl">ثبت پیشنهاد</h2>
+        {variant === "inline" && (
+          <span className="label-kinetic border-2 border-accent bg-accent px-3 py-2 text-accent-foreground">
             {zone.label}
           </span>
-        </div>
+        )}
+      </div>
+      <StepIndicator steps={BID_STEPS} currentStep={step} />
+    </div>
+  );
+
+  if (variant === "inline") {
+    return (
+      <div ref={panelRef} className="kinetic-card scroll-mt-4 border-0 bg-card p-6">
+        {header}
         {formContent}
       </div>
     );
@@ -430,24 +460,31 @@ export function BidSheet({
   return (
     <>
       <div
-        className="fixed inset-0 z-40 animate-fade-in"
+        className="fixed inset-0 z-40 animate-fade-in md:hidden"
         style={{ background: "var(--overlay)" }}
         onClick={onClose}
         aria-hidden
       />
-      <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-3xl bg-card shadow-2xl animate-slide-up">
-        <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="text-lg font-bold">ثبت پیشنهاد</h2>
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="sheet-panel fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col animate-slide-up md:hidden"
+      >
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b-2 border-border p-5">
+          <h2 className="display-section text-3xl">ثبت پیشنهاد</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-muted hover:bg-background"
+            className="btn-outline shrink-0"
             aria-label="بستن"
           >
-            ✕
+            بستن
           </button>
         </div>
-        <div className="overflow-y-auto overscroll-contain px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] [-webkit-overflow-scrolling:touch]">
+          <div className="mb-6">
+            <StepIndicator steps={BID_STEPS} currentStep={step} />
+          </div>
           {formContent}
         </div>
       </div>

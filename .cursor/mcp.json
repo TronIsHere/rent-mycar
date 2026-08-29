@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+      "aimlapi": {
+        "url": "https://mcp.aimlapi.com/mcp",
+        "headers": { "Authorization": "Bearer 527c85e72624742470485ee52c98bb53" }
+      }
+    }
+  }
