@@ -212,8 +212,8 @@ export function HomePage() {
           </div>
         )}
 
-        <div className="grid gap-8 lg:max-h-[calc(100vh-5rem)] lg:grid-cols-[1.85fr_1fr] lg:items-stretch lg:gap-px lg:border-2 lg:border-border lg:bg-border">
-          <section className="flex min-h-0 flex-col bg-background lg:sticky lg:top-20 lg:p-4">
+        <div className="grid gap-8 lg:grid-cols-[1.85fr_1fr] lg:gap-px lg:border-2 lg:border-border lg:bg-border">
+          <section className="flex min-h-0 flex-col bg-background lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:p-4">
             <div className="relative flex min-h-[min(48dvh,380px)] flex-1 flex-col overflow-hidden border-2 border-border lg:min-h-0">
               <div
                 className="viewer-grid pointer-events-none absolute inset-0 z-0"
@@ -221,7 +221,7 @@ export function HomePage() {
               />
               <div className="relative z-10 min-h-0 flex-1">
                 {!loading && zones.length === 0 ? (
-                  <CarViewerShell className="flex h-full items-center justify-center">
+                  <CarViewerShell className="absolute inset-0 flex items-center justify-center">
                     <p className="text-muted-foreground">اطلاعاتی یافت نشد</p>
                   </CarViewerShell>
                 ) : (
@@ -241,7 +241,7 @@ export function HomePage() {
             </div>
           </section>
 
-          <section className="flex flex-col bg-background lg:max-h-[calc(100vh-5rem)] lg:min-h-0 lg:overflow-hidden lg:p-4">
+          <section className="flex min-h-0 flex-col bg-background lg:h-[calc(100vh-5rem)] lg:overflow-hidden lg:p-4">
             {!loading && (
               <div className="mb-4 hidden gap-px border-2 border-border bg-border lg:grid lg:grid-cols-3">
                 <StatBlock

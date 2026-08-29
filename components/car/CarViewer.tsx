@@ -95,7 +95,7 @@ export function CarViewer({
 
   return (
     <CarViewerShell
-      className="h-full touch-none overflow-hidden"
+      className="absolute inset-0 touch-none overflow-hidden"
       onPointerDown={stopAutoRotate}
     >
       <Canvas
