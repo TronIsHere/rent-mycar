@@ -270,16 +270,27 @@ export function HomePage() {
               {zoneList}
 
               {selectedZone ? (
-                <BidSheet
-                  variant="inline"
-                  zone={selectedZone}
-                  open
-                  onClose={() => {
-                    setSelectedSlug(null);
-                    setSheetOpen(false);
-                  }}
-                  onSuccess={fetchZones}
-                />
+                <>
+                  <div className="kinetic-card border-0 bg-card p-6 text-center lg:hidden">
+                    <p className="label-kinetic text-accent">{selectedZone.label}</p>
+                    <p className="mt-2 text-lg font-bold">فضا انتخاب شده</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      برای ثبت پیشنهاد، دکمه پایین صفحه را بزنید
+                    </p>
+                  </div>
+                  <div className="hidden lg:block">
+                    <BidSheet
+                      variant="inline"
+                      zone={selectedZone}
+                      open
+                      onClose={() => {
+                        setSelectedSlug(null);
+                        setSheetOpen(false);
+                      }}
+                      onSuccess={fetchZones}
+                    />
+                  </div>
+                </>
               ) : (
                 <div className="kinetic-card border-0 bg-card p-12 text-center">
                   <p

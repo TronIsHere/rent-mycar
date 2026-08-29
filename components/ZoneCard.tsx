@@ -26,24 +26,20 @@ export function ZoneCard({ zone, selected, onSelect }: ZoneCardProps) {
             <h3 className="kinetic-card-fg text-lg font-bold leading-none md:text-xl lg:text-base">
               {zone.label}
             </h3>
-            <span
-              className={`label-kinetic inline-flex flex-col border px-2 py-1 leading-tight ${
-                isOccupied
-                  ? "border-success bg-success-bg text-success-text group-hover:border-black group-hover:bg-black/10 group-hover:text-black"
-                  : "border-border bg-muted text-muted-foreground group-hover:border-black group-hover:bg-black/10 group-hover:text-black"
-              }`}
-            >
-              {isOccupied ? (
-                <>
-                  <span>اجاره شده</span>
-                  <span className="mt-0.5 text-[0.65em] font-normal opacity-90">
-                    مبلغ بالاتر پیشنهاد دهید
-                  </span>
-                </>
-              ) : (
-                "آزاد"
-              )}
-            </span>
+            {isOccupied ? (
+              <>
+                <span className="label-kinetic border border-success bg-success-bg px-2 py-1 leading-tight text-success-text group-hover:border-black group-hover:bg-black/10 group-hover:text-black">
+                  اجاره شده
+                </span>
+                <span className="label-kinetic border border-accent bg-accent px-2 py-1 leading-tight text-accent-foreground group-hover:border-black group-hover:bg-black/10 group-hover:text-black">
+                  پیشنهاد بالاتر بدهید
+                </span>
+              </>
+            ) : (
+              <span className="label-kinetic border border-border bg-muted px-2 py-1 leading-tight text-muted-foreground group-hover:border-black group-hover:bg-black/10 group-hover:text-black">
+                آزاد
+              </span>
+            )}
           </div>
           <p className="kinetic-card-muted mt-2 text-sm text-muted-foreground lg:mt-1.5 lg:text-xs">
             {winning ? (
