@@ -39,9 +39,7 @@ function StatBlock({
 }) {
   return (
     <div
-      className={`border-2 ${
-        compact ? "p-3" : "p-4 md:p-6"
-      } ${
+      className={`border-2 ${compact ? "p-3" : "p-4 md:p-6"} ${
         highlight
           ? "border-accent bg-accent text-accent-foreground"
           : "border-border bg-card"
@@ -49,9 +47,7 @@ function StatBlock({
     >
       <p
         className={`font-bold leading-none ${
-          compact
-            ? "text-2xl"
-            : "text-4xl md:text-5xl"
+          compact ? "text-2xl" : "text-4xl md:text-5xl"
         } ${highlight ? "" : "text-foreground"}`}
       >
         {value}
@@ -124,20 +120,18 @@ export function HomePage() {
     setZonesSheetOpen(false);
   };
 
-  const zoneList = loading ? (
-    Array.from({ length: 7 }).map((_, index) => (
-      <div key={index} className="skeleton h-32" />
-    ))
-  ) : (
-    zones.map((zone) => (
-      <ZoneCard
-        key={zone.slug}
-        zone={zone}
-        selected={selectedSlug === zone.slug}
-        onSelect={handleSelectZone}
-      />
-    ))
-  );
+  const zoneList = loading
+    ? Array.from({ length: 7 }).map((_, index) => (
+        <div key={index} className="skeleton h-32" />
+      ))
+    : zones.map((zone) => (
+        <ZoneCard
+          key={zone.slug}
+          zone={zone}
+          selected={selectedSlug === zone.slug}
+          onSelect={handleSelectZone}
+        />
+      ));
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -178,7 +172,7 @@ export function HomePage() {
           <h1 className="display-hero max-w-5xl">
             تبلیغ خود را
             <br />
-            <span className="text-accent">روی خودرو</span> بگذارید
+            <span className="text-accent">روی خودروی من</span> بگذارید
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl lg:text-2xl">
             نقطه را روی مدل سه‌بعدی انتخاب کنید، پیشنهاد بالاتر بدهید و تصویر
